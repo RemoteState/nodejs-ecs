@@ -1,0 +1,464 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "NodeJS Server",
+  "Metadata": {
+    "Author": {
+      "Name": "Tejashwi Kalp Taru"
+    },
+    "Key": {
+      "Map": "Value"
+    }
+  },
+  "Parameters": {
+    "VpcId": {
+      "Type": "AWS::EC2::VPC::Id",
+      "Description": "Select a VPC that allows instances to access the Internet."
+    },
+    "DockerImageURL": {
+      "Type": "String",
+      "Description": "Url of the Docker Image to deploy and tag"
+    },
+    "SubnetIDs": {
+      "Type": "List<AWS::EC2::Subnet::Id>",
+      "Description": "Select at least two subnets in your selected VPC."
+    },
+    "DesiredCapacity": {
+      "Type": "Number",
+      "Default": "1",
+      "Description": "Number of instances to launch in your ECS cluster."
+    },
+    "MaxSize": {
+      "Type": "Number",
+      "Default": "1",
+      "Description": "Maximum number of instances that can be launched in your ECS cluster."
+    },
+    "InstanceType": {
+      "Description": "EC2 instance type",
+      "Type": "String",
+      "Default": "t2.micro",
+      "AllowedValues": [
+        "t2.micro",
+        "t2.small",
+        "t2.medium",
+        "t2.large",
+        "m3.medium",
+        "m3.large",
+        "m3.xlarge",
+        "m3.2xlarge",
+        "m4.large",
+        "m4.xlarge",
+        "m4.2xlarge",
+        "m4.4xlarge",
+        "m4.10xlarge",
+        "c4.large",
+        "c4.xlarge",
+        "c4.2xlarge",
+        "c4.4xlarge",
+        "c4.8xlarge",
+        "c3.large",
+        "c3.xlarge",
+        "c3.2xlarge",
+        "c3.4xlarge",
+        "c3.8xlarge",
+        "r3.large",
+        "r3.xlarge",
+        "r3.2xlarge",
+        "r3.4xlarge",
+        "r3.8xlarge",
+        "i2.xlarge",
+        "i2.2xlarge",
+        "i2.4xlarge",
+        "i2.8xlarge"
+      ],
+      "ConstraintDescription": "Please choose a valid instance type."
+    }
+  },
+  "Mappings": {
+    "AWSRegionECSAMI": {
+      "us-east-1": {
+        "ID": "ami-b2df2ca4"
+      },
+      "us-east-2": {
+        "ID": "ami-832b0ee6"
+      },
+      "us-west-1": {
+        "ID": "ami-dd104dbd"
+      },
+      "us-west-2": {
+        "ID": "ami-022b9262"
+      },
+      "eu-west-1": {
+        "ID": "ami-a7f2acc1"
+      },
+      "eu-west-2": {
+        "ID": "ami-3fb6bc5b"
+      },
+      "eu-central-1": {
+        "ID": "ami-ec2be583"
+      },
+      "ap-northeast-1": {
+        "ID": "ami-c393d6a4"
+      },
+      "ap-southeast-1": {
+        "ID": "ami-a88530cb"
+      },
+      "ap-southeast-2": {
+        "ID": "ami-8af8ffe9"
+      },
+      "ca-central-1": {
+        "ID": "ami-ead5688e"
+      }
+    }
+  },
+  "Resources": {
+    "Cluster": {
+      "Type": "AWS::ECS::Cluster"
+    },
+    "ELBSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "SecurityGroup for our Elastic Application Load Balancer",
+        "VpcId": {
+          "Ref": "VpcId"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "EKB Security Group"
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+    "InstanceSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "SecurityGroup for our Instances",
+        "VpcId": {
+          "Ref": "VpcId"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Instance Security Group"
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "31000",
+            "ToPort": "61000",
+            "SourceSecurityGroupId": {
+              "Ref": "ELBSecurityGroup"
+            }
+          }
+        ]
+      }
+    },
+    "InstanceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+        ]
+      }
+    },
+    "ServiceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ecs.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole"
+        ]
+      }
+    },
+    "ELB": {
+      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+      "Properties": {
+        "Name": "semaphore-demo-elb",
+        "Scheme": "internet-facing",
+        "LoadBalancerAttributes": [
+          {
+            "Key": "idle_timeout.timeout_seconds",
+            "Value": "60"
+          }
+        ],
+        "Subnets": {
+          "Ref": "SubnetIDs"
+        },
+        "SecurityGroups": [
+          {
+            "Ref": "ELBSecurityGroup"
+          }
+        ]
+      }
+    },
+    "ELBListener": {
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+      "Properties": {
+        "LoadBalancerArn": {
+          "Ref": "ELB"
+        },
+        "Port": "80",
+        "Protocol": "HTTP",
+        "DefaultActions": [
+          {
+            "Type": "forward",
+            "TargetGroupArn": {
+              "Ref": "ELBTargetGroup"
+            }
+          }
+        ]
+      }
+    },
+    "ELBListenerRule": {
+      "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+      "DependsOn": "ELBListener",
+      "Properties": {
+        "ListenerArn": {
+          "Ref": "ELBListener"
+        },
+        "Actions": [
+          {
+            "Type": "forward",
+            "TargetGroupArn": {
+              "Ref": "ELBTargetGroup"
+            }
+          }
+        ],
+        "Conditions": [
+          {
+            "Field": "path-pattern",
+            "Values": [
+              "/"
+            ]
+          }
+        ],
+        "Priority": 1
+      }
+    },
+    "ELBTargetGroup": {
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "DependsOn": "ELB",
+      "Properties": {
+        "Name": "ELBTargetGroup",
+        "HealthCheckIntervalSeconds": 10,
+        "HealthCheckPath": "/",
+        "HealthCheckProtocol": "HTTP",
+        "HealthCheckTimeoutSeconds": 5,
+        "HealthyThresholdCount": 2,
+        "Port": 80,
+        "Protocol": "HTTP",
+        "UnhealthyThresholdCount": 2,
+        "VpcId": {
+          "Ref": "VpcId"
+        }
+      }
+    },
+    "AutoscalingGroup": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "VPCZoneIdentifier": {
+          "Ref": "SubnetIDs"
+        },
+        "LaunchConfigurationName": {
+          "Ref": "LaunchConfig"
+        },
+        "MinSize": "1",
+        "MaxSize": {
+          "Ref": "MaxSize"
+        },
+        "DesiredCapacity": {
+          "Ref": "DesiredCapacity"
+        }
+      },
+      "CreationPolicy": {
+        "ResourceSignal": {
+          "Timeout": "PT15M"
+        }
+      },
+      "UpdatePolicy": {
+        "AutoScalingReplacingUpdate": {
+          "WillReplace": "true"
+        }
+      }
+    },
+    "WebInstanceProfile": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "InstanceRole"
+          }
+        ]
+      }
+    },
+    "LaunchConfig": {
+      "Type": "AWS::AutoScaling::LaunchConfiguration",
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "AWSRegionECSAMI",
+            {
+              "Ref": "AWS::Region"
+            },
+            "ID"
+          ]
+        },
+        "InstanceType": {
+          "Ref": "InstanceType"
+        },
+        "IamInstanceProfile": {
+          "Ref": "WebInstanceProfile"
+        },
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "",
+              [
+                "#!/usr/bin/env bash\n",
+                "echo ECS_CLUSTER=",
+                {
+                  "Ref": "Cluster"
+                },
+                " >> /etc/ecs/ecs.config\n",
+                "\n",
+                "yum install -y aws-cfn-bootstrap\n",
+                "/opt/aws/bin/cfn-signal -e $? ",
+                "         --stack ",
+                {
+                  "Ref": "AWS::StackName"
+                },
+                "         --resource AutoscalingGroup ",
+                "         --region ",
+                {
+                  "Ref": "AWS::Region"
+                }
+              ]
+            ]
+          }
+        },
+        "SecurityGroups": [
+          {
+            "Ref": "InstanceSecurityGroup"
+          }
+        ]
+      }
+    },
+    "WebTaskDefinition": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "Family": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "AWS::StackName"
+              },
+              "-web-task"
+            ]
+          ]
+        },
+        "ContainerDefinitions": [
+          {
+            "Name": "web-task",
+            "Image": {
+              "Ref": "DockerImageURL"
+            },
+            "Memory": "300",
+            "Cpu": "256",
+            "Essential": true,
+            "PortMappings": [
+              {
+                "ContainerPort": "3000",
+                "Protocol": "tcp"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "WebService": {
+      "Type": "AWS::ECS::Service",
+      "DependsOn": "ELBListener",
+      "Properties": {
+        "Cluster": {
+          "Ref": "Cluster"
+        },
+        "DesiredCount": "1",
+        "LoadBalancers": [
+          {
+            "ContainerName": "web-task",
+            "ContainerPort": "3000",
+            "TargetGroupArn": {
+              "Ref": "ELBTargetGroup"
+            }
+          }
+        ],
+        "DeploymentConfiguration": {
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 0
+        },
+        "Role": {
+          "Ref": "ServiceRole"
+        },
+        "TaskDefinition": {
+          "Ref": "WebTaskDefinition"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "EcsCluster": {
+      "Description": "The name of our newly created cluster",
+      "Value": {
+        "Ref": "Cluster"
+      }
+    },
+    "EcsDNS": {
+      "Description": "The DNS endpoint of your Load Balancer",
+      "Value": {
+        "Fn::GetAtt": [
+          "ELB",
+          "DNSName"
+        ]
+      }
+    }
+  }
+}

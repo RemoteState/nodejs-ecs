@@ -13,6 +13,7 @@ project
 │   tslint.json -> linters are here, so be careful 🤓
 │   Dockerfile -> docker configuration file for docker build
 │   .dockerignore -> files to ignore with docker
+│   jest.config.js -> jest test runner configuration
 │
 └───dist/ -> all your compiled project goes here
 │   └───src/ -> compiled source code
@@ -20,12 +21,19 @@ project
 │       │   ...
 │       │   ...
 │   
-└───src
+└───src/ -> all your source code
 │   └───handler/ -> all your controller and handler should go here
 │   └───router/ -> router setup for this project
 │   └───server/ -> server setup for this project
 │   │
-│   │  index.ts -> entry point of server app written in TypeScript
+│   │   index.ts -> entry point of server app written in TypeScript
+│   
+└───deployment -> all your deployment and stack creation template and settings
+│   │   ecs-stack.json -> cloudformation template to create ECS stack
+│   │   parameter-store.sh -> add required params/secrets to AWS paramter store
+│   │   rds-event.template -> SMS notification subscription for database events like fail over etc.
+│   │   rds.template -> AWS teplate to create master and one read replicate for postgres DB
+
 ```
 
 ### Getting started
@@ -41,3 +49,29 @@ project
 ### Run locally
 - run `npm run start` for local run
 - run `npm run start:docker` for local docker run
+
+### Deployment
+Before you deploy this project, you need to configure your AWS CLI and AWS account
+- create ECR repository, and push your docker image and then get the repo URL
+- upload `deployment/ecs-stack.json` to Cloudformation dashboard > create on AWS
+- provide the config details and ECR url and finish the stack creation
+- run `sh ./deployment/parameter_store_values.sh` with all the required values filled
+- run ```aws cloudformation create-stack \
+  --template-body file://deployment/rds.template \
+  --stack-name YourStackName``` with required values filled to create RDS postgres instance
+- optionally you can run ```aws cloudformation create-stack \
+  --template-body file://deployment/rds.event.template \
+  --stack-name YourStackName``` to enable SMS notification for DB events
+  
+You can also validate the template using
+```bash
+aws cloudformation validate-template \
+  --template-body file://deployment/rds.template
+```
+
+Once your stack is created and running, you can then configure CI/CD pipeline to run the
+test `npm run test` and lint, then build the docker image and push to ECR. The server deployment
+will be automatically updated with the latest ECR image
+
+-- Happy coding  😉
+

@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This template deploys a RDS EventSubscription/SNS/SMS Alerts"
+Parameters:
+  DBAlertPhoneNumber:
+    Type: String
+    Default: "{{resolve:ssm:/sample/alert_phone:1}}"
+Resources:
+  MyDBSNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      Subscription:
+        - Endpoint:
+            Ref: DBAlertPhoneNumber
+          Protocol: sms
+      TopicName: "Sample-DB-Notifications"
+  MyEventSubscription:
+    Type: AWS::RDS::EventSubscription
+    Properties:
+      Enabled: true
+      EventCategories:
+        - availability
+        - configuration change
+        - creation
+        - deletion
+        - failover
+        - failure
+        - recovery
+      SnsTopicArn:
+        Ref: MyDBSNSTopic
+      SourceType: db-instance

@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "This template deploys a RDS PostgreSQL master with single read replica"
+Parameters:
+  DBInstanceIdentifier:
+    Type: String
+    Default: "sample-instance"
+  ReplicaInstanceIdentifier:
+    Type: String
+    Default: "sample-replica"
+  DBEngine:
+    Type: String
+    Default: "postgres"
+  DBEngineVersion:
+    Type: String
+    Default: "13.2"
+  DBSourceRegion:
+    Type: String
+    Default: "us-east-1"
+  DBInstanceClass:
+    Type: String
+    Default: "db.t3.medium"
+  DBStorageType:
+    Type: String
+    Default: "gp2"
+  DBAllocatedStorage:
+    Type: Number
+    Default: 20
+  DBName:
+    Type: String
+    Default: "{{resolve:ssm:/sample/db_name:1}}"
+  DBUser:
+    Type: String
+    Default: "{{resolve:ssm:/sample/master_username:1}}"
+  DBPassword:
+    Type: String
+    Default: "{{resolve:ssm-secure:/sample/master_password:1}}"
+    NoEcho: True
+Resources:
+  SampleMaster:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier:
+        Ref: DBInstanceIdentifier
+      DBName:
+        Ref: DBName
+      AllocatedStorage:
+        Ref: DBAllocatedStorage
+      DBInstanceClass:
+        Ref: DBInstanceClass
+      StorageType:
+        Ref: DBStorageType
+      Engine:
+        Ref: DBEngine
+      EngineVersion:
+        Ref: DBEngineVersion
+      MasterUsername:
+        Ref: DBUser
+      MasterUserPassword:
+        Ref: DBPassword
+      Tags:
+        - Key: Project
+          Value: "sample"
+  SampleReadReplica:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier:
+        Ref: ReplicaInstanceIdentifier
+      AllocatedStorage:
+        Ref: DBAllocatedStorage
+      DBInstanceClass:
+        Ref: DBInstanceClass
+      SourceDBInstanceIdentifier:
+        Ref: PagilaMaster
+      SourceRegion:
+        Ref: DBSourceRegion
+      Tags:
+        - Key: Project
+          Value: "sample"
+Outputs:
+  EndpointMaster:
+    Description: "Endpoint of the newly created RDS PostgreSQL master"
+    Value: !GetAtt SampleMaster.Endpoint.Address
+  PortReadReplica:
+    Description: "Endpoint of the newly created RDS PostgreSQL replica"
+    Value: !GetAtt SampleReadReplica.Endpoint.Address
+  PortDB:
+    Description: "Port of the newly created RDS PostgreSQL master and replica"
+    Value: !GetAtt SampleMaster.Endpoint.Port
+  JdbcConnString:
+    Description: "JDBC connection string of newly created RDS PostgreSQL master, w/o password"
+    Value: !Join
+      - ""
+      - - "jdbc:postgresql://"
+        - !GetAtt SampleMaster.Endpoint.Address
+        - ":"
+        - !GetAtt SampleMaster.Endpoint.Port
+        - "/"
+        - "{{resolve:ssm:/sample/db_name:1}}"
+        - "?user="
+        - "{{resolve:ssm:/sample/master_username:1}}"
+        - "&password="
+        - ""
