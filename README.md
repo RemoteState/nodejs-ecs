@@ -22,7 +22,7 @@ project
 │       │   ...
 │   
 └───src/ -> all your source code
-│   └───handler/ -> all your controller and handler should go here
+│   └───controller/ -> all your controller and handler should go here
 │   └───router/ -> router setup for this project
 │   └───server/ -> server setup for this project
 │   │
@@ -49,6 +49,12 @@ project
 ### Run locally
 - run `npm run start` for local run
 - run `npm run start:docker` for local docker run
+
+
+### Testing
+- run `npm run test` to run all the tests
+- all the test files should go inside `__test__` folder
+- all test files should have `test` in name, ending with `.ts` for example `hello.test.ts`
 
 ### Deployment
 Before you deploy this project, you need to configure your AWS CLI and AWS account
