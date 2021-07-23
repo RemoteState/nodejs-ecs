@@ -15,6 +15,7 @@ export default class Sample {
     public async SayHello(req: Request, res: Response, next: NextFunction) {
         const body = req.body as SampleRequestBody;
         try {
+            body.name = 'Hello ' + body.name;
             res.status(200).send({
                 status: 'success',
                 data: body,
