@@ -14,6 +14,7 @@ project
 │   Dockerfile -> docker configuration file for docker build
 │   .dockerignore -> files to ignore with docker
 │   jest.config.js -> jest test runner configuration
+│   .prettierrc -> pretify your code
 │
 └───dist/ -> all your compiled project goes here
 │   └───src/ -> compiled source code
@@ -28,11 +29,14 @@ project
 │   │
 │   │   index.ts -> entry point of server app written in TypeScript
 │   
-└───deployment -> all your deployment and stack creation template and settings
+└───deployment/ -> all your deployment and stack creation template and settings
 │   │   ecs-stack.json -> cloudformation template to create ECS stack
 │   │   parameter-store.sh -> add required params/secrets to AWS paramter store
 │   │   rds-event.template -> SMS notification subscription for database events like fail over etc.
 │   │   rds.template -> AWS teplate to create master and one read replicate for postgres DB
+│   
+│   
+└───types/ -> all your types for request/response interface, non db models and Joi validators
 
 ```
 

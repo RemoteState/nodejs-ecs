@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from 'express';
 
 export default class Health {
     private static instance: Health;
-
     private constructor() {}
 
     public static getInstance(): Health {

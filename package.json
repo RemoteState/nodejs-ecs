@@ -12,7 +12,7 @@
     "build:docker": "docker build -t $npm_package_name .",
     "start:docker": "npm run build:docker && docker run -p 3000:3000 $npm_package_name",
     "test": "jest",
-    "lint": "tslint --project tsconfig.json && npm run preety",
+    "lint": "npm run preety && tslint --project tsconfig.json",
     "prettier:base": "prettier --parser typescript --single-quote",
     "preety": "npm run prettier:base -- --write \"src/**/*.{ts,tsx}\""
   },
