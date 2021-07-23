@@ -1,7 +1,7 @@
 {
   "name": "nodejs-ecs",
   "version": "0.0.0",
-  "description": "barebone nodejs server setup",
+  "description": "sample nodejs server setup",
   "main": "src/index.ts",
   "scripts": {
     "prebuild": "npm run lint",
