@@ -11,7 +11,8 @@
             "src/@types"
         ],
         "types": [
-            "node"
+            "node",
+            "jest"
         ],
         "allowJs": false,
         "esModuleInterop": true,
