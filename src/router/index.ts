@@ -1,10 +1,8 @@
 import { NextFunction, Request, Response, Router, Application } from 'express';
-import {HealthRouter} from "./health";
+import { HealthRouter } from './health';
 
 // all your route goes here
-const _routes: [string, Router][] = [
-    ['/health', HealthRouter],
-];
+const _routes: [string, Router][] = [['/health', HealthRouter]];
 
 // export configured routes
 export const routes = (app: Application) => {
@@ -17,6 +15,6 @@ export const routes = (app: Application) => {
     });
     // finally add route to catch errors
     app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-        res.status(500).send({status: 'error', 'error': err})
-    })
+        res.status(500).send({ status: 'error', error: err });
+    });
 };

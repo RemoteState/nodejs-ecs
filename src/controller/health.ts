@@ -1,10 +1,9 @@
-import {NextFunction, Request, Response} from "express";
+import { NextFunction, Request, Response } from 'express';
 
 export default class Health {
     private static instance: Health;
 
-    private constructor() {
-    }
+    private constructor() {}
 
     public static getInstance(): Health {
         if (!Health.instance) {
@@ -16,10 +15,10 @@ export default class Health {
     public async GetHealth(req: Request, res: Response, next: NextFunction) {
         try {
             res.status(200).send({
-                status: "okay"
-            })
+                status: 'okay',
+            });
         } catch (e) {
-            next(e)
+            next(e);
         }
     }
 }

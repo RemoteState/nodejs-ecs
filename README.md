@@ -76,7 +76,7 @@ aws cloudformation validate-template \
 ```
 
 Once your stack is created and running, you can then configure CI/CD pipeline to run the
-test `npm run test` and lint, then build the docker image and push to ECR. The server deployment
+test `npm run test` and lint `npm run lint`, then build the docker image and push to ECR. The server deployment
 will be automatically updated with the latest ECR image
 
 -- Happy coding  😉

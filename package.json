@@ -4,14 +4,22 @@
   "description": "barebone nodejs server setup",
   "main": "src/index.ts",
   "scripts": {
-    "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
+    "prebuild": "npm run lint",
     "build": "tsc",
     "prestart": "npm run build",
     "start": "node ./dist/src/index.js --env .env",
     "prebuild:docker": "npm run build",
     "build:docker": "docker build -t $npm_package_name .",
     "start:docker": "npm run build:docker && docker run -p 3000:3000 $npm_package_name",
-    "test": "jest"
+    "test": "jest",
+    "lint": "tslint --project tsconfig.json && npm run preety",
+    "prettier:base": "prettier --parser typescript --single-quote",
+    "preety": "npm run prettier:base -- --write \"src/**/*.{ts,tsx}\""
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
   },
   "repository": {
     "type": "git",
@@ -54,11 +62,14 @@
     "@types/joi": "^17.2.3",
     "@types/node": "^16.4.1",
     "@types/supertest": "^2.0.11",
+    "husky": "^7.0.1",
     "jest": "^27.0.6",
+    "prettier": "^2.3.2",
     "supertest": "^6.1.4",
     "ts-jest": "^27.0.4",
     "ts-node": "^10.1.0",
     "tslint": "^6.1.3",
+    "tslint-config-prettier": "^1.18.0",
     "typescript": "^4.3.5"
   },
   "dependencies": {
