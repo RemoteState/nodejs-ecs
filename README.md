@@ -26,6 +26,7 @@ project
 │   └───controller/ -> all your controller and handler should go here
 │   └───router/ -> router setup for this project
 │   └───server/ -> server setup for this project
+│   └───types/ -> all your types for request/response interface, non db models and Joi validators
 │   │
 │   │   index.ts -> entry point of server app written in TypeScript
 │   
@@ -34,10 +35,6 @@ project
 │   │   parameter-store.sh -> add required params/secrets to AWS paramter store
 │   │   rds-event.template -> SMS notification subscription for database events like fail over etc.
 │   │   rds.template -> AWS teplate to create master and one read replicate for postgres DB
-│   
-│   
-└───types/ -> all your types for request/response interface, non db models and Joi validators
-
 ```
 
 ### Getting started
