@@ -18,7 +18,8 @@ export const routes = (app: Application) => {
         credentials: true,
         methods: 'GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE',
         origin: '*',
-        preflightContinue: true,
+        preflightContinue: false,
+        optionsSuccessStatus: 204
     };
     app.use(cors(corsOptions));
 
