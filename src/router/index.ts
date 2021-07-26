@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response, Router, Application } from 'express';
 import { HealthRouter } from './health';
-import { SampleRouter } from './sample';
+import { UserRouter } from './users';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 
 // all your route goes here
 const _routes: [string, Router][] = [
     ['/health', HealthRouter],
-    ['/hello', SampleRouter],
+    ['/users', UserRouter],
 ];
 
 // export configured routes

@@ -1,14 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 
-export default class Health {
-    private static instance: Health;
+export default class HealthController {
+    private static instance: HealthController;
     private constructor() {}
 
-    public static getInstance(): Health {
-        if (!Health.instance) {
-            Health.instance = new Health();
+    public static getInstance(): HealthController {
+        if (!HealthController.instance) {
+            HealthController.instance = new HealthController();
         }
-        return Health.instance;
+        return HealthController.instance;
     }
 
     public async GetHealth(req: Request, res: Response, next: NextFunction) {

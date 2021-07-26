@@ -12,7 +12,7 @@ Resources:
         - Endpoint:
             Ref: DBAlertPhoneNumber
           Protocol: sms
-      TopicName: "Sample-DB-Notifications"
+      TopicName: "Users-DB-Notifications"
   MyEventSubscription:
     Type: AWS::RDS::EventSubscription
     Properties:

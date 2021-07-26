@@ -15,6 +15,9 @@ project
 │   .dockerignore -> files to ignore with docker
 │   jest.config.js -> jest test runner configuration
 │   .prettierrc -> pretify your code
+│   docker-compose.yml -> pull and run all dependency such as DB locally
+│   clean.sh -> delete the build folder (dist)
+│   ormconfig.ts -> database/typeorm config file
 │
 └───dist/ -> all your compiled project goes here
 │   └───src/ -> compiled source code
@@ -26,6 +29,8 @@ project
 │   └───controller/ -> all your controller and handler should go here
 │   └───router/ -> router setup for this project
 │   └───server/ -> server setup for this project
+│   └───database/ -> all database files like entities, migrations etc
+│   └───utils/ -> common utility class
 │   └───types/ -> all your types for request/response interface, non db models and Joi validators
 │   │
 │   │   index.ts -> entry point of server app written in TypeScript
@@ -42,6 +47,29 @@ project
 - Install NodeJS, NPM and Docker
 - Run `npm i` inside the repo folder
 - Run `npm run start` to build and run the project locally
+
+### Prerequisite
+Before you build or run the server locally, you should start docker and run
+```bash
+docker-compose up -d or docker compose up -d
+```
+To pull down the docker containers
+```bash
+docker-compose down or docker compose down
+```
+
+### Migration
+- to create a new migration run `typeorm migration:create -n {migration-name}`
+- to run migration `typeorm migration:run`
+
+### Environment
+To run this project locally you need to set following env vars
+- PORT
+- DB_PORT
+- DB_HOST
+- DB_USER
+- DB_PASS
+- DB_NAME
 
 ### Build
 - run `npm run build` for local build

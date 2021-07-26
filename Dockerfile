@@ -33,6 +33,9 @@ RUN npm ci --only=production
 # Set user
 USER node
 
+# Goto dist
+WORKDIR /usr/src/app/dist
+
 # Start
-CMD [ "dumb-init", "node", "dist/src/index.js" ]
+CMD [ "dumb-init", "node", "src/index.js" ]
 EXPOSE 3000
